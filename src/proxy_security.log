@@ -1,0 +1,1 @@
+[2026-03-28 19:43:33] | GET     | http://neverssl.com/                               | Status: 502 ERROR: error sending request for url (http://neverssl.com/): error trying to connect: operation timed out

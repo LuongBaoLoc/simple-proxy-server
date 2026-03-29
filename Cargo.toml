@@ -1,0 +1,18 @@
+[package]
+name = "rust_proxy_pro"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+hyper = { version = "0.14", features = ["full"] }
+reqwest = { version = "0.11", features = ["json", "stream"] }
+futures-util = "0.3"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+# Thư viện quan trọng cho TLS Termination
+rcgen = "0.11" 
+tokio-rustls = "0.24"
+rustls = { version = "0.21", features = ["dangerous_configuration"] }
+rustls-pemfile = "1.0"
+chrono = "0.4"

@@ -1,0 +1,4 @@
+# Danh sách domain bị chặn
+facebook.com
+youtube.com
+doubleclick.net

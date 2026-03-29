@@ -1,0 +1,22 @@
+# Chặn các công cụ lách luật (Bypass tools)
+bypass
+proxy-list
+free-proxy
+web-proxy
+
+# Chặn các phần mềm VPN/Tor
+vpn-free
+tor-project
+onion-link
+ultrasurf
+
+# Chặn các từ khóa liên quan đến tấn công mạng (Cyber Attack)
+hack-tool
+sql-injection
+brute-force
+exploit-db
+kali-linux
+
+# Chặn nội dung không phù hợp trong môi trường học tập/làm việc
+bit.ly
+shorturl
