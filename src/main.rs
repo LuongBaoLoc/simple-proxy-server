@@ -3,7 +3,9 @@ mod proxy;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::fs;
+use std::io::Write;
 use hyper::Server;
+use regex::RegexSet;
 use hyper::service::{make_service_fn, service_fn};
 use std::convert::Infallible;
 use proxy::handlers::ProxyState;
@@ -37,30 +39,49 @@ async fn main() {
         .build()
         .expect("❌ Không thể khởi tạo HTTP Client");
 
-    // 3. Đọc danh sách chặn từ file
+    // 3. Đọc danh sách chặn từ file và compile RegexSet
     println!("🔍 Đang tải cấu hình an ninh...");
     
-    let blacklist = load_list_from_file(
+    let blacklist_patterns = load_list_from_file(
         "blacklist.txt", 
         "# Danh sách domain bị chặn\nfacebook.com\nyoutube.com\ndoubleclick.net"
     );
+    let blacklist = RegexSet::new(&blacklist_patterns).expect("❌ Lỗi biên dịch Regex cho Blacklist");
 
-    let forbidden_keywords = load_list_from_file(
+    let keyword_patterns = load_list_from_file(
         "keywords.txt", 
         "# Danh sách từ khóa nhạy cảm bị chặn\nbypass\nvpn-free\nproxy-list\nhack"
     );
+    let forbidden_keywords = RegexSet::new(&keyword_patterns).expect("❌ Lỗi biên dịch Regex cho Keywords");
 
-    // 4. Khởi tạo Shared State (Sử dụng Arc để chia sẻ an toàn giữa các luồng)
+    // 4. Khởi tạo Kênh Ghi Log Bất Đồng Bộ
+    let (log_tx, mut log_rx) = tokio::sync::mpsc::unbounded_channel::<String>();
+    
+    tokio::spawn(async move {
+        // Mở file append-only
+        let mut file = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open("proxy_security.log")
+            .expect("❌ Không thể mở proxy_security.log để ghi log");
+        
+        while let Some(log_message) = log_rx.recv().await {
+            let _ = file.write_all(log_message.as_bytes());
+        }
+    });
+
+    // 5. Khởi tạo Shared State (Sử dụng Arc để chia sẻ an toàn giữa các luồng)
     let shared_state = Arc::new(ProxyState {
         client,
         blacklist,
         forbidden_keywords,
+        log_sender: log_tx,
     });
 
-    // 5. Thiết lập Socket
+    // 6. Thiết lập Socket
     let addr: SocketAddr = "127.0.0.1:8888".parse().expect("Địa chỉ không hợp lệ");
 
-    // 6. Khởi tạo Service (SỬA LỖI E0382 TẠI ĐÂY)
+    // 7. Khởi tạo Service (SỬA LỖI E0382 TẠI ĐÂY)
     let make_svc = make_service_fn(move |_conn| {
         // Clone Arc cho mỗi kết nối mới
         let state = Arc::clone(&shared_state); 
@@ -74,17 +95,16 @@ async fn main() {
         }
     });
 
-    // 7. Giao diện Console
+    // 8. Giao diện Console
     println!("-----------------------------------------------");
     println!("🚀 HUY'S SECURE PROXY PRO V2.5 (Sửa lỗi E0382)");
     println!("📍 Địa chỉ lắng nghe: http://127.0.0.1:8888");
     println!("📊 Đã tải {} domain chặn và {} từ khóa cấm", 
-             // Chúng ta dùng mượn dữ liệu để in ra trước khi di chuyển vào server
-             "?", "?"); 
+             blacklist_patterns.len(), keyword_patterns.len()); 
     println!("📁 Nhật ký an ninh: proxy_security.log");
     println!("-----------------------------------------------");
 
-    // 8. Kích hoạt Server
+    // 9. Kích hoạt Server
     let server = Server::bind(&addr).serve(make_svc);
     
     if let Err(e) = server.await {

@@ -16,3 +16,4 @@ tokio-rustls = "0.24"
 rustls = { version = "0.21", features = ["dangerous_configuration"] }
 rustls-pemfile = "1.0"
 chrono = "0.4"
+regex = "1.10"

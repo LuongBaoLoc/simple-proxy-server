@@ -1,5 +1,5 @@
 # Chặn các công cụ lách luật (Bypass tools)
-bypass
+b[y1]p[a@4]ss
 proxy-list
 free-proxy
 web-proxy
@@ -11,7 +11,7 @@ onion-link
 ultrasurf
 
 # Chặn các từ khóa liên quan đến tấn công mạng (Cyber Attack)
-hack-tool
+h[a@4]ck[-_]?t[o0]{2}l
 sql-injection
 brute-force
 exploit-db
